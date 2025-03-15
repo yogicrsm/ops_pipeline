@@ -46,7 +46,7 @@ def train_and_save_model(data):
 def main():
     # Load data (choose source: file or database)
     data = None
-    if os.path.exists('data1.txt'):
+    if os.path.exists('data.txt'):
         data = load_data_from_text_file()
     elif os.path.exists('data.db'):
         data = load_data_from_db()
