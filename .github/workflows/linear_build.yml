@@ -32,6 +32,8 @@ jobs:
       # Build Docker image
       - name: Build Docker image
         run: |
+          ls -lr 
+          pwd
           docker build -t myapp:latest .
 
       # Run the Docker container
