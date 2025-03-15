@@ -1,0 +1,61 @@
+name: Docker Build and Run
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when there is a push to the 'main' branch
+  pull_request:
+    branches:
+      - main  # Trigger the workflow on pull requests targeting 'main' branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Cache Docker layers to speed up the build
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t myapp:latest .
+
+      # Run the Docker container
+      - name: Run Docker container
+        run: |
+          docker run --name myapp-container myapp:latest
+
+      # Validate the running container (for example, check if the app is running or accessible)
+      - name: Validate the container
+        run: |
+          # Example validation: check if the app is running (replace this with your actual validation)
+          docker cp myapp-container:/app/linear_regression_model.pkl ./
+
+      # Optionally: Clean up the container
+      - name: Stop and remove the container
+        run: |
+          docker stop myapp-container
+          docker rm myapp-container
+
+      # # Push Docker image to Docker Hub (or other registry) if desired
+      # - name: Push Docker image
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      #     docker tag myapp:latest $DOCKER_USERNAME/myapp:latest
+      #     docker push $DOCKER_USERNAME/myapp:latest
