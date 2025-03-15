@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the Python script and data files into the container
 COPY train_linear_regression.py /app/
 COPY data.txt /app/
-COPY data.db /app/
+# COPY data.db /app/
 
 # Install required Python packages
 RUN pip install --no-cache-dir pandas scikit-learn joblib
