@@ -25,6 +25,7 @@ def train_and_save_model(data):
     # Assume the last column is the target (y) and others are features (X)
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
+    print('--------')
 
     # Train/test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
