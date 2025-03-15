@@ -1,48 +1,60 @@
-from flask import Flask, request, jsonify
-import numpy as np
-from sklearn.linear_model import LinearRegression
+import sqlite3
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import joblib
+import os
 
-app = Flask(__name__)
+# Function to load data from a text file
+def load_data_from_text_file():
+    # Example sample data (CSV format) in a text file
+    data = pd.read_csv('data.txt', delimiter=',')
+    return data
 
-# Train a simple linear regression model
-def train_model():
-    # Example data (X: feature, y: target variable)
-    data = {
-        'X': [1, 2, 3, 4, 5],
-        'y': [1, 2, 3, 4, 5]
-    }
+# Function to load data from an SQLite database
+def load_data_from_db():
+    conn = sqlite3.connect('data.db')
+    query = "SELECT * FROM data_table"
+    data = pd.read_sql(query, conn)
+    conn.close()
+    return data
 
-    df = pd.DataFrame(data)
-    X = df[['X']]  # Feature
-    y = df['y']    # Target
+# Train the model and save it
+def train_and_save_model(data):
+    # Assume the last column is the target (y) and others are features (X)
+    X = data.iloc[:, :-1]
+    y = data.iloc[:, -1]
 
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train the linear regression model
     model = LinearRegression()
-    model.fit(X, y)
-    
-    return model
+    model.fit(X_train, y_train)
 
-# Create a global model instance
-model = train_model()
+    # Predictions and evaluation
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    print(f'Mean Squared Error: {mse}')
 
-@app.route('/')
-def home():
-    return "Linear Regression Flask API"
+    # Save the model to a file
+    joblib.dump(model, 'linear_regression_model.pkl')
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Get data from the request
-        data = request.get_json()  # {"feature": value}
-        
-        feature_value = data['feature']
-        
-        # Make prediction
-        prediction = model.predict(np.array([[feature_value]]))
-        
-        return jsonify({'prediction': prediction[0]})
-    except Exception as e:
-        return jsonify({'error': str(e)})
+# Main function
+def main():
+    # Load data (choose source: file or database)
+    data = None
+    if os.path.exists('data1.txt'):
+        data = load_data_from_text_file()
+    elif os.path.exists('data.db'):
+        data = load_data_from_db()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    if data is not None:
+        # Train the model and save it
+        train_and_save_model(data)
+    else:
+        print("No data found!")
+
+if __name__ == "__main__":
+    main()
